@@ -200,8 +200,6 @@ describe("MySequelize Challenge", () => {
         ],
       });
 
-      console.log(myResults)
-
 
       expect(myResults[0].id).toBe(results[0][0].id);
       expect(myResults[0].playlists[0].creator).toBe(results[0][0].id);
@@ -322,7 +320,6 @@ describe("MySequelize Challenge", () => {
 
       const users = await mysqlCon.query(`SELECT * FROM users `)
 
-      console.log(users[0])
 
       expect(users[0][0].name).toBe('Yoav')
 
@@ -450,8 +447,6 @@ describe("MySequelize Challenge", () => {
           id: "1' UNION SELECT id, name, password FROM users -- "
         }
       })
-
-      console.log(hack)
       // expect(hack.length).toBe(1)
 
 

@@ -5,84 +5,73 @@ class MySequelize {
     }
 
     async create(obj) {
+       const result = await this.connection.query(`INSERT INTO ${this.table} SET ?`, obj)
 
-        /*
-           Model.create({
-               name: 'test',
-               email: 'test@gmail.com',
-               password: '123456789',
-               is_admin: false
-           })
-        */
     }
 
     async bulkCreate(arr) {
-
-        /*
-           Model.bulkCreate([
-               {
-               name: 'test',
-               email: 'test@gmail.com',
-               password: '123456789',
-               is_admin: false
-           },
-           {
-               name: 'test1',
-               email: 'test1@gmail.com',
-               password: '123456789',
-               is_admin: false
-           },
-           {
-               name: 'test2',
-               email: 'test2@gmail.com',
-               password: '123456789',
-               is_admin: true
-           },
-        ])
-        */
+        const results = arr.map(async (obj) => await this.connection.query(`INSERT INTO ${this.table} SET ?`, obj))
     }
 
     async findAll(options) {
+        let results;
 
-        /*
-        Model.findAll({
-            where: {
-                is_admin: false
-            },
-            order: ['id', 'DESC'],
-            limit 2
-        })
-        */
-
-        /*
-        Model.findAll({
-            include:[
-                {
-                    table: playlists,             // table yo want to join
-                    tableForeignKey: "creator",   // column reference in the table yo want to join
-                    sourceForeignKey: "id",       // base table column reference
+        let attributesQuery = '*';
+        let whereQuery = '';
+        let limitQuery = '';
+        let orederByQuery = '';
+        let includeQuery = '';
+        if (options){
+            if (options.hasOwnProperty('where')){
+                for (let key in options.where) {
+                    if (whereQuery.length>0) whereQuery += " AND ";
+                    whereQuery += `${key} = '${options.where[key]}'`
+                    }
+                whereQuery = `WHERE ${whereQuery}`
                 }
-            ] 
-        })
-        */
-
-        /*
-        Model.findAll({
-            where: {
-                [Op.gt]: {
-                    id: 10
-                },                // both [Op.gt] and [Op.lt] need to work so you can pass the tests
-                [Op.lt]: {        
-                    id: 20
-                }
-        })
-        */
+            if (options.hasOwnProperty('order')){
+                orederByQuery = `ORDER BY ${options.order.join(' ')}`
+            }
+            
+            if (options.hasOwnProperty('limit')){
+                limitQuery = `LIMIT ${options.limit}`
+            }
+            
+            if (options.hasOwnProperty('attributes')){
+                let attributesArr = options.attributes.map(attribute => {
+                    if (typeof attribute === 'string') return attribute;
+                    if (typeof attribute === 'object') return attribute.join(' AS ');
+                })
+                attributesQuery = attributesArr.join(', ');
+                // console.log(' att querey: ', attributesQuery)
+            }
+            if (options.hasOwnProperty('include')){
+                const tempRes = await this.connection.query(`SELECT * FROM ${this.table}`)
+                const finalRes = tempRes[0].map(async (res) => {
+                    const includedRes = await this.connection.query(`SELECT * 
+                                                                     FROM ${options.include.table} 
+                                                                     WHERE ${options.include.tableForeignKey}=${this.table}.${res.id}`)
+                    res.playlists = includedRes[0];
+                })
+                return finalRes;
+            }
+        }
+        results = await this.connection.query(`
+            select ${attributesQuery} 
+            from ${this.table}
+            ${whereQuery}
+            ${includeQuery}
+            ${orederByQuery}
+            ${limitQuery}
+            `)
+        return results[0]
     }
-
     async findByPk(id) {
-        /*
-            Model.findByPk(id)
-        */
+
+        const result = await this.connection.query(`SELECT * FROM ${this.table} WHERE id=${id} LIMIT 1`)
+        
+        return result[0]
+
     }
 
     async findOne(options) {
