@@ -1,6 +1,6 @@
-const { MySequelize } = require("./mySequelize");
+const { MySequelize } = require("./index.js");
 const mysql = require("mysql2/promise");
-const { Op } = require('./Op/OpsSymbols')
+const { Op } = require('./Op/OpSymbols')
 
 
 let mysqlCon;
@@ -11,7 +11,7 @@ describe("MySequelize Challenge", () => {
     mysqlCon = await mysql.createConnection({
       host: 'localhost',
       user: 'root',
-      password: null,
+      password: "password",
       database: 'db_test',
       multipleStatements: true,
     });
